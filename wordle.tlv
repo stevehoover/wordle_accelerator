@@ -92,11 +92,11 @@
                                                   fontFamily: "Roboto Mono", fontSize: 8}]},
                render() {
                   this.getObjects().letter.set({text: String.fromCharCode('$letter'.asInt() + 65),
-                                                fill: '/_name$valid'.asBool() ? "black" : "gray"})
+                                                fill: '$_valid'.asBool() ? "black" : "gray"})
                },
                renderFill() {
                   if (this.getIndex("in") == m5_guess) {
-                     return ! '/_name$valid'.asBool() ? "transparent" :
+                     return ! '$_valid'.asBool() ? "transparent" :
                             '/_name/guess_letter[this.getIndex()]$green'.asBool() ? "green" :
                             '/_name/guess_letter[this.getIndex()]$yellow'.asBool() ? "yellow" :
                                 "gray";
@@ -110,7 +110,7 @@
             \viz_js
                box: {left: 15, width: 10, height: 10},
                renderFill() {
-                  return ! '/_name$valid'.asBool()    ? "transparent" :
+                  return ! '$_valid'.asBool()    ? "transparent" :
                          '$may_match_yellow'.asBool() ? "yellow" :
                                                         "gray"
                },
@@ -123,7 +123,7 @@
                                                fontFamily: "Roboto Mono", fontSize: 8}]},
             render() {
                this.getObjects().letter.set({text: String.fromCharCode('$letter'.asInt() + 65),
-                                             fill: '/_name$valid'.asBool() ? "black" : "gray"})
+                                             fill: '$_valid'.asBool() ? "black" : "gray"})
             },
 
 \SV
@@ -133,12 +133,13 @@
 \TLV
    |pipe
       @1
+         $valid = *cyc_cnt[0];
          ?$valid
             /in[1:0]
                $val[31:0] = $rand_val[31:0] & 32'b00000000011100111001110011100111;
             m5+wordle_rslt(|pipe, /wordle_rslt, $out, /in[0]$val, /in[1]$val)
-         m5+wordle_viz(|pipe, /wordle_rslt, $valid, [''])
-         m5+debug_viz(|pipe, /wordle_rslt, $valid)
+         m5+wordle_viz(|pipe, /wordle_rslt, |pipe$valid, [''])
+         m5+debug_viz(|pipe, /wordle_rslt, |pipe$valid)
          
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = *cyc_cnt > 40;
