@@ -10,9 +10,13 @@
    var(guess, 0)
    var(answer, 1)
    
-\TLV wordle_rslt(/_top, /_name, $_out, $_in0, $_in1)
+\TLV wordle_rslt(/_top, /_name, $_out, $_in0, $_in1, _where)
    $_out[31:0] = {22'b0, /_name/guess_letter[*]$out};
    /_name
+      \viz_js
+         box: {strokeWidth: 0},
+         where: {_where},
+      
       // Input operands:
       // 1 word, 5 letters, 5 bits per letter.
       // in0: Guess word
@@ -118,7 +122,7 @@
 \TLV
    /in[1:0]
       $val[31:0] = $rand_val[31:0] & 32'b00000000011100111001110011100111;
-   m5+wordle_rslt(/top, /wordle_rslt, $out, /in[0]$val, /in[1]$val)
+   m5+wordle_rslt(/top, /wordle_rslt, $out, /in[0]$val, /in[1]$val, [''])
 
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = *cyc_cnt > 40;
