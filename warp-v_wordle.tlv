@@ -46,7 +46,7 @@
    // Include WARP-V.
    
    m4_include_lib(['https://raw.githubusercontent.com/stevehoover/warp-v/a62bbe1258b914c7d5ce00cd6ffb075aea8fb952/warp-v.tlv'])
-   m4_include_lib(['https://raw.githubusercontent.com/stevehoover/wordle_accelerator/b0126cb013d2f03d74305bc58c7c228aa604e237/wordle.tlv'])
+   m4_include_lib(['https://raw.githubusercontent.com/stevehoover/wordle_accelerator/5688443cf83e04e372d56715444b62f3f70072cf/wordle.tlv'])
 \m5
    TLV_fn(riscv_my_custom_prog, {
       ~assemble(['
@@ -57,6 +57,7 @@
          # Default program for RV32I test
          # Add 1,2,3,...,9 (in that order).
          # Store incremental results in memory locations 0..9. (1, 3, 6, 10, ...)
+         # Updated for wordle support, to guess a new word (though not legal words) in each loop iteration.
          #
          # Regs:
          # t0: cnt
@@ -65,19 +66,25 @@
          # t1: final value
          # a1: expected result
          # t2: store addr
+         # a5: guess word
+         # a6: answer word
          reset:
-            LI t0, 0x55555
-            LI t1, 0x77555
-            WORDLE t2, t0, t1
+            # Load words "GUESS" (guess word) and "TEASE" (answer word)
+            LI a5, 0b1001010010001001010000110  # "GUESS"
+            LI a6, 0b0010010010000000010010011  # "TEASE"
             ORI t2, zero, 0          #     store_addr = 0
             ORI t0, zero, 1          #     cnt = 1
             ORI a2, zero, 10         #     ten = 10
             ORI a0, zero, 0          #     out = 0
          loop:
+            WORDLE a4, a5, a6
             ADD a0, t0, a0           #  -> out += cnt
             SW a0, 0(t2)             #     store out at store_addr
             ADDI t0, t0, 1           #     cnt++
             ADDI t2, t2, 4           #     store_addr++
+            # Modify the wordle guess word by adding or subtracting one to/from each letter.
+            LI t3, 0b1111011111000001111100001
+            ADD a5, a5, t3
             BLT t0, a2, loop         #  ^- branch back if cnt < 10
          # Result should be 0x2d.
             LW t1, -4(t2)            #     load the final value
@@ -103,5 +110,9 @@ m4+module_def()
       \TLV
          m5+wordle_rslt(/instr, /wordle_rslt, $wordle_rslt, /src[1]$reg_value, /src[2]$reg_value)
       )
+   |fetch
+      /instr
+         @m5_VIZ_STAGE
+            m5+wordle_viz(/instr, /wordle_rslt, /instr$is_wordle_instr, ['left: 295, top: 23, width: 15, height: 15'])
 \SV
    endmodule
