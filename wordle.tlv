@@ -77,7 +77,7 @@
                  $may_be_yellow     ? /prev$no_yellows_so_far :
                                       /prev$one_yellow_so_far;
 
-\TLV wordle_viz(/_top, /_name, _where)
+\TLV wordle_viz(/_top, /_name, $_valid, _where)
    /_name
       \viz_js
          box: {strokeWidth: 0},
@@ -91,22 +91,28 @@
                template: {letter:  ["Text", "X", {left: 2, top: 1,
                                                   fontFamily: "Roboto Mono", fontSize: 8}]},
                render() {
-                  this.getObjects().letter.set("text", String.fromCharCode('$letter'.asInt() + 65))
+                  this.getObjects().letter.set({text: String.fromCharCode('$letter'.asInt() + 65),
+                                                fill: '/_name$valid'.asBool() ? "black" : "gray"})
                },
                renderFill() {
                   if (this.getIndex("in") == m5_guess) {
-                     return '/_name/guess_letter[this.getIndex()]$green'.asBool() ? "green" :
+                     return ! '/_name$valid'.asBool() ? "transparent" :
+                            '/_name/guess_letter[this.getIndex()]$green'.asBool() ? "green" :
                             '/_name/guess_letter[this.getIndex()]$yellow'.asBool() ? "yellow" :
                                 "gray";
                   } else {
                   }
                },
+\TLV debug_viz(/_top, /_name, $_valid)
+   /_name
       /guess_letter[4:0]
          /answer_letter[4:0]
             \viz_js
                box: {left: 15, width: 10, height: 10},
                renderFill() {
-                  return '$may_match_yellow'.asBool() ? "yellow" : "gray"
+                  return ! '/_name$valid'.asBool()    ? "transparent" :
+                         '$may_match_yellow'.asBool() ? "yellow" :
+                                                        "gray"
                },
          \viz_js
             // Guess word horizontally beside grid.
@@ -116,7 +122,8 @@
             template: {letter:  ["Text", "X", {left: 2, top: 1,
                                                fontFamily: "Roboto Mono", fontSize: 8}]},
             render() {
-               this.getObjects().letter.set("text", String.fromCharCode('$letter'.asInt() + 65))
+               this.getObjects().letter.set({text: String.fromCharCode('$letter'.asInt() + 65),
+                                             fill: '/_name$valid'.asBool() ? "black" : "gray"})
             },
 
 \SV
@@ -124,11 +131,15 @@
    // stimulus support, and Verilator config.
    m5_makerchip_module   // (Expanded in Nav-TLV pane.)
 \TLV
-   /in[1:0]
-      $val[31:0] = $rand_val[31:0] & 32'b00000000011100111001110011100111;
-   m5+wordle_rslt(/top, /wordle_rslt, $out, /in[0]$val, /in[1]$val)
-   m5+wordle_viz(/top, /wordle_rslt, [''])
-   
+   |pipe
+      @1
+         ?$valid
+            /in[1:0]
+               $val[31:0] = $rand_val[31:0] & 32'b00000000011100111001110011100111;
+            m5+wordle_rslt(|pipe, /wordle_rslt, $out, /in[0]$val, /in[1]$val)
+         m5+wordle_viz(|pipe, /wordle_rslt, $valid, [''])
+         m5+debug_viz(|pipe, /wordle_rslt, $valid)
+         
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = *cyc_cnt > 40;
    *failed = 1'b0;
