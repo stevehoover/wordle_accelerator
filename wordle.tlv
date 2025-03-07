@@ -87,7 +87,7 @@
             layout: {top: 15},
          /letter[4:0]
             \viz_js
-               box: {width: 10, height: 10, },
+               box: {width: 10, height: 10, strokeWidth: 0.5, stroke: "white", fill: "#A0D0D0"},
                template: {letter:  ["Text", "X", {left: 2, top: 1,
                                                   fontFamily: "Roboto Mono", fontSize: 8}]},
                render() {
@@ -108,7 +108,7 @@
       /guess_letter[4:0]
          /answer_letter[4:0]
             \viz_js
-               box: {left: 15, width: 10, height: 10},
+               box: {left: 15, width: 10, height: 10, strokeWidth: 0.5, stroke: "white", fill: "#A0D0D0"},
                renderFill() {
                   return ! '$_valid'.asBool()    ? "transparent" :
                          '$may_match_yellow'.asBool() ? "yellow" :
@@ -117,7 +117,7 @@
          \viz_js
             // Guess word horizontally beside grid.
             where: {left: -15, top: 30},
-            box: {width: 10, height: 10},
+            box: {width: 10, height: 10, strokeWidth: 0.5, stroke: "white", fill: "#A0D0D0"},
             layout: "vertical",
             template: {letter:  ["Text", "X", {left: 2, top: 1,
                                                fontFamily: "Roboto Mono", fontSize: 8}]},
@@ -136,7 +136,8 @@
          $valid = *cyc_cnt[0];
          ?$valid
             /in[1:0]
-               $val[31:0] = $rand_val[31:0] & 32'b00000000011100111001110011100111;
+               //$val[31:0] = $rand_val[31:0] & 32'b00000000011100111001110011100111;
+               $val[31:0] = #in ? 32'h35C5D6 : 32'hE5AC87;
             m5+wordle_rslt(|pipe, /wordle_rslt, $out, /in[0]$val, /in[1]$val)
          m5+wordle_viz(|pipe, /wordle_rslt, |pipe$valid, [''])
          m5+debug_viz(|pipe, /wordle_rslt, |pipe$valid)
